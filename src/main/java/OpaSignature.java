@@ -7,6 +7,7 @@ import com.nimbusds.jose.jwk.*;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.apache.commons.codec.DecoderException;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -21,11 +22,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * This example uses the <a href="https://bitbucket.org/connect2id/nimbus-jose-jwt/wiki/Home">NIMBUS_JOSE_JWT</a> library.
- * Currently only compact serialisation is supported, not the non-compact i.e. JSON serialisation. See <a href="https://connect2id.com/products/nimbus-jose-jwt/roadmap">NIMBUS Roadmap</a>
+ * This example uses the NIMBUS_JOSE_JWT library (https://bitbucket.org/connect2id/nimbus-jose-jwt/wiki/Home).
+ * Currently only compact serialisation is supported, not the non-compact i.e. JSON serialisation (https://connect2id.com/products/nimbus-jose-jwt/roadmap)
  * <p>
- * Another most popular library <a href="https://github.com/jwtk/jjwt">JJWT</a> also doesnt support non-compact i.e. JSON serialisation yet
- * Another popular library <a href="https://bitbucket.org/b_c/jose4j/wiki/Home">JOSE4j</a> also doesnt support non-compact i.e. JSON serialisation yet
+ * Another most popular library JJWT (https://github.com/jwtk/jjwt) also doesnt support non-compact i.e. JSON serialisation yet
+ * Another popular library JOSE4j (https://bitbucket.org/b_c/jose4j/wiki/Home) also doesnt support non-compact i.e. JSON serialisation yet
  */
 public class OpaSignature {
 
@@ -37,7 +38,7 @@ public class OpaSignature {
     }
 
     public static void main(String[] args) throws JOSEException, ParseException, NoSuchAlgorithmException, DecoderException, IOException {
-        System.out.println("OPA SIGNATURE EXAMPLE with JWT + JWS.....");
+        System.out.println("OPA SIGNATURE EXAMPLE with JWS.....");
 
         // Generate a random RSA key pair every time
 //        RSAKey rsaJWK = new RSAKeyGenerator(2048)
@@ -124,6 +125,7 @@ public class OpaSignature {
         // Compute the RSA signature
         signedJWT.sign(signer);
 
+
         // Prepare JWS object with simple string as payload
 //        JWSObject jwsObject = new JWSObject(
 //                new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(rsaJWK.getKeyID()).build(),
@@ -134,8 +136,18 @@ public class OpaSignature {
 
         // Output in URL-safe format
         String jsonString = signedJWT.serialize();
-        Files.write(Paths.get("db/uam2/.signature-compact-RSA"), jsonString.getBytes());
 
+        // Set the signature object for signature and file list
+        SignaturePOJO signatures = new SignaturePOJO();
+        signatures.setSignature(jsonString);
+        ObjectMapper mapper = new ObjectMapper();
+        CollectionType javaType = mapper.getTypeFactory()
+                .constructCollectionType(List.class, FilesPOJO.class);
+        signatures.setFiles(mapper.readValue(filesJson, javaType));
+
+        String signatureString = mapper.writeValueAsString(signatures);
+
+        Files.write(Paths.get("db/uam2/.signature-compact-RSA"), signatureString.getBytes());
         return jsonString;
     }
 
@@ -149,13 +161,15 @@ public class OpaSignature {
             System.out.println("No content found in the file -> \n" + fileName);
             return;
         }
+        ObjectMapper mapper = new ObjectMapper();
+        SignaturePOJO signatures = mapper.readValue(fileBytes, SignaturePOJO.class);
 
-        String content = new String(fileBytes);
-        System.out.println("Token Found Out " + fileName + " ->\n" + content);
+//        String content = new String(fileBytes);
+        System.out.println("Token Found Out " + fileName + " ->\n" + signatures.getSignature());
         // To parse the JWS and verify it, e.g. on client-side
 //        JWSObject jwsObject = JWSObject.parse(content);
         // On the consumer side, parse the JWS and verify its RSA signature
-        SignedJWT signedJWT = SignedJWT.parse(content);
+        SignedJWT signedJWT = SignedJWT.parse(signatures.getSignature());
 
         JWSVerifier verifier = new RSASSAVerifier(rsaPublicJWK);
 //        boolean isValid = jwsObject.verify(verifier);
@@ -165,7 +179,6 @@ public class OpaSignature {
         String payload = (String) signedJWT.getJWTClaimsSet().getClaim("files");
         System.out.println("JWS Object Payload ->\n" + payload);
 
-        ObjectMapper mapper = new ObjectMapper();
         List<FilesPOJO> files = null;
         try {
             CollectionType javaType = mapper.getTypeFactory()
@@ -226,7 +239,18 @@ public class OpaSignature {
         // To serialize to compact form, produces something like
         // eyJhbGciOiJIUzI1NiJ9.SGVsbG8sIHdvcmxkIQ.onO9Ihudz3WkiauDO2Uhyuz0Y18UASXlSc1eS0NkWyA
         String jsonString = signedJWT.serialize();
-        Files.write(Paths.get("db/uam2/.signature-compact-HMAC"), jsonString.getBytes());
+
+        // Set the signature object
+        SignaturePOJO signatures = new SignaturePOJO();
+        signatures.setSignature(jsonString);
+        ObjectMapper mapper = new ObjectMapper();
+        CollectionType javaType = mapper.getTypeFactory()
+                .constructCollectionType(List.class, FilesPOJO.class);
+        signatures.setFiles(mapper.readValue(filesJson, javaType));
+
+        String signatureString = mapper.writeValueAsString(signatures);
+
+        Files.write(Paths.get("db/uam2/.signature-compact-HMAC"), signatureString.getBytes());
 
         return jsonString;
     }
@@ -240,14 +264,16 @@ public class OpaSignature {
             System.out.println("No content found in the file -> \n" + fileName);
             return;
         }
+        ObjectMapper mapper = new ObjectMapper();
+        SignaturePOJO signatures = mapper.readValue(fileBytes, SignaturePOJO.class);
 
-        String content = new String(fileBytes);
-        System.out.println("Token Found Out " + fileName + " ->\n" + content);
+//        String content = new String(fileBytes);
+        System.out.println("Token Found Out " + fileName + " ->\n" + signatures.getSignature());
         // To parse the JWS and verify it, e.g. on client-side
 //        JWSObject jwsObject = JWSObject.parse(content);
 
         // On the consumer side, parse the JWS and verify its RSA signature
-        SignedJWT signedJWT = SignedJWT.parse(content);
+        SignedJWT signedJWT = SignedJWT.parse(signatures.getSignature());
 
         JWSVerifier verifier = new MACVerifier(sharedSecret);
 //        boolean isValid = jwsObject.verify(verifier);
@@ -257,7 +283,6 @@ public class OpaSignature {
         String payload = (String) signedJWT.getJWTClaimsSet().getClaim("files");
         System.out.println("JWS Object Payload ->\n" + payload);
 
-        ObjectMapper mapper = new ObjectMapper();
         List<FilesPOJO> files = null;
         try {
             CollectionType javaType = mapper.getTypeFactory()
@@ -297,7 +322,8 @@ public class OpaSignature {
                         .map(Path::toString).collect(Collectors.toList());
 
                 for (String fileName : results) {
-                    if (!fileName.endsWith(".signature-compact-RSA") && !fileName.endsWith(".signature-full-RSA") && !fileName.endsWith(".signature-compact-HMAC")) {
+                    if (!fileName.endsWith(".signature-compact-RSA") && !fileName.endsWith(".signature-full-RSA")
+                            && !fileName.endsWith(".signature-compact-HMAC") && !fileName.endsWith(".DS_Store")) {
                         FilesPOJO file = new FilesPOJO();
                         file.setName(fileName);
 

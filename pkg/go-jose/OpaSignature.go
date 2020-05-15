@@ -1,7 +1,6 @@
 package main
 
 import (
-	//"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
@@ -23,10 +22,18 @@ import (
 	"gopkg.in/square/go-jose.v2/jwt"
 )
 
-// File denotes the type that holds the file path and their SHA hash
+//type FilePayLoad struct {
+//	Version string `json:"version"`
+//	Files   []File `json:"files"`
+//}
+
 type File struct {
 	Name   string `json:"name"`
 	Sha256 string `json:"sha-256"`
+}
+type Signature struct {
+	Signature string `json:"signature"`
+	Files     []File `json:"files"`
 }
 
 func fromHexInt(base16 string) *big.Int {
@@ -91,18 +98,18 @@ func main() {
 	fmt.Printf("Files JSON Payload: \n%s\n", files)
 
 	fmt.Println("\n============================ Using FULL JSON Serialisation========================")
-	jwsJSON := createJWSWithRSA(privateKey, files, false)
-	fmt.Printf("JWS Token Serialised: \n%s\n", jwsJSON)
+	jwsJson := createJWSWithRSA(privateKey, files, false)
+	fmt.Printf("JWS Token Serialised: \n%s\n", jwsJson)
 	verifyJWSWithRSA(privateKey.PublicKey, "db/uam2/.signature-full-RSA", false)
 
 	fmt.Println("\n============================ Using COMPACT Serialisation==========================")
-	jwsJSONC := createJWSWithRSA(privateKey, files, true)
-	fmt.Printf("JWS Token Serialised: \n%s\n", jwsJSONC)
+	jwsJsonC := createJWSWithRSA(privateKey, files, true)
+	fmt.Printf("JWS Token Serialised: \n%s\n", jwsJsonC)
 	verifyJWSWithRSA(privateKey.PublicKey, "db/uam2/.signature-compact-RSA", true)
 
 	fmt.Printf("\n============================ Using Secret/Symmetric Key==========================\n")
-	jwsJSONHMAC := createJWSWithHMAC(secretForHMAC, files, true)
-	fmt.Printf("JWS Token Serialised: \n%s\n", jwsJSONHMAC)
+	jwsJsonHMAC := createJWSWithHMAC(secretForHMAC, files, true)
+	fmt.Printf("JWS Token Serialised: \n%s\n", jwsJsonHMAC)
 	verifyJWSWithHMAC(secretForHMAC, "db/uam2/.signature-compact-HMAC", true)
 }
 
@@ -156,24 +163,40 @@ func createJWSWithRSA(privateKey *rsa.PrivateKey, files []File, isCompact bool) 
 	//	log.Fatal(err)
 	//}
 
-	var jwsJSON string
+	var jwsJson string
 	if isCompact {
-		jwsJSON, _ = clBytes.CompactSerialize()
-		//Write to file signature-compact.json
-		err = ioutil.WriteFile("db/uam2/.signature-compact-RSA", []byte(jwsJSON), 0600)
+		jwsJson, _ = clBytes.CompactSerialize()
+		// Generate Signature JSON
+		signBytes, err := json.Marshal(Signature{
+			Signature: jwsJson,
+			Files:     files,
+		})
 		if err != nil {
 			log.Fatal(err)
 		}
-		return jwsJSON
+		//Write to file signature-compact.json
+		err = ioutil.WriteFile("db/uam2/.signature-compact-RSA", signBytes, 0600)
+		if err != nil {
+			log.Fatal(err)
+		}
+		return jwsJson
 	}
 
-	jwsJSON, _ = clBytes.FullSerialize()
-	//Write to file signature-compact.json
-	err = ioutil.WriteFile("db/uam2/.signature-full-RSA", []byte(jwsJSON), 0600)
+	jwsJson, _ = clBytes.FullSerialize()
+	// Generate Signature JSON
+	signBytes, err := json.Marshal(Signature{
+		Signature: jwsJson,
+		Files:     files,
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	return jwsJSON
+	//Write to file signature-compact.json
+	err = ioutil.WriteFile("db/uam2/.signature-full-RSA", signBytes, 0600)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return jwsJson
 }
 
 // verifyJWSWithRSA
@@ -184,6 +207,7 @@ func verifyJWSWithRSA(publicKey rsa.PublicKey, filePath string, isCompact bool) 
 		log.Println(err)
 		return []File{}
 	}
+
 	// Read the file content
 	bytes, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -193,9 +217,16 @@ func verifyJWSWithRSA(publicKey rsa.PublicKey, filePath string, isCompact bool) 
 		fmt.Printf("No content found in the file ->%v\n", filePath)
 		return []File{}
 	}
+
+	// Unmarshal bytes to the Signature object
+	var signatures Signature
+	err = json.Unmarshal(bytes, &signatures)
+	if err != nil {
+		log.Fatal(err)
+	}
 	fmt.Printf("\nToken found in "+filePath+" ->\n%s\n", string(bytes))
 
-	jwsObject, err := jwt.ParseSigned(string(bytes))
+	jwsObject, err := jwt.ParseSigned(signatures.Signature)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -279,24 +310,37 @@ func createJWSWithHMAC(secret string, files []File, isCompact bool) string {
 	//	log.Fatal("2 -----", err)
 	//}
 
-	var jwsJSON string
+	var jwsJson string
 	if isCompact {
-		jwsJSON, _ = clBytes.CompactSerialize()
+		jwsJson, _ = clBytes.CompactSerialize()
 		//Write to file signature-compact.json
-		err = ioutil.WriteFile("db/uam2/.signature-compact-HMAC", []byte(jwsJSON), 0600)
+		// Generate Signature JSON
+		signBytes, err := json.Marshal(Signature{
+			Signature: jwsJson,
+			Files:     files,
+		})
+		err = ioutil.WriteFile("db/uam2/.signature-compact-HMAC", signBytes, 0600)
 		if err != nil {
 			log.Fatal(err)
 		}
-		return jwsJSON
+		return jwsJson
 	}
 
-	jwsJSON, _ = clBytes.FullSerialize()
-	//Write to file signature-compact.json
-	err = ioutil.WriteFile("db/uam2/.signature-full-HMAC", []byte(jwsJSON), 0600)
+	jwsJson, _ = clBytes.FullSerialize()
+	// Generate Signature JSON
+	signBytes, err := json.Marshal(Signature{
+		Signature: jwsJson,
+		Files:     files,
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	return jwsJSON
+	//Write to file signature-compact.json
+	err = ioutil.WriteFile("db/uam2/.signature-full-HMAC", signBytes, 0600)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return jwsJson
 }
 
 // verifyJWSWithHMAC
@@ -318,8 +362,14 @@ func verifyJWSWithHMAC(secret string, filePath string, isCompact bool) []File {
 		return []File{}
 	}
 	fmt.Printf("\nToken found in "+filePath+" ->\n%s\n", string(bytes))
+	// Unmarshal bytes to the Signature object
+	var signatures Signature
+	err = json.Unmarshal(bytes, &signatures)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	jwsObject, err := jwt.ParseSigned(string(bytes))
+	jwsObject, err := jwt.ParseSigned(signatures.Signature)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -370,7 +420,8 @@ func scanDir(targetDir string) []File {
 			// skip existing signature files
 			if !info.IsDir() && !strings.HasSuffix(info.Name(), ".signature-compact-RSA") &&
 				!strings.HasSuffix(info.Name(), ".signature-full-RSA") &&
-				!strings.HasSuffix(info.Name(), ".signature-compact-HMAC") {
+				!strings.HasSuffix(info.Name(), ".signature-compact-HMAC") &&
+				!strings.HasSuffix(info.Name(), ".DS_Store") {
 				hasher := sha256.New()
 				f, err := os.Open(path)
 				if err != nil {
