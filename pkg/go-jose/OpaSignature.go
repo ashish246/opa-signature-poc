@@ -33,7 +33,7 @@ type File struct {
 }
 type Signature struct {
 	Signature string `json:"signature"`
-	Files     []File `json:"files"`
+	// Files     []File `json:"files"`
 }
 
 func fromHexInt(base16 string) *big.Int {
@@ -169,7 +169,7 @@ func createJWSWithRSA(privateKey *rsa.PrivateKey, files []File, isCompact bool) 
 		// Generate Signature JSON
 		signBytes, err := json.Marshal(Signature{
 			Signature: jwsJson,
-			Files:     files,
+			// Files:     files,
 		})
 		if err != nil {
 			log.Fatal(err)
@@ -186,7 +186,7 @@ func createJWSWithRSA(privateKey *rsa.PrivateKey, files []File, isCompact bool) 
 	// Generate Signature JSON
 	signBytes, err := json.Marshal(Signature{
 		Signature: jwsJson,
-		Files:     files,
+		// Files:     files,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -317,7 +317,7 @@ func createJWSWithHMAC(secret string, files []File, isCompact bool) string {
 		// Generate Signature JSON
 		signBytes, err := json.Marshal(Signature{
 			Signature: jwsJson,
-			Files:     files,
+			// Files:     files,
 		})
 		err = ioutil.WriteFile("db/uam2/.signature-compact-HMAC", signBytes, 0600)
 		if err != nil {
@@ -330,7 +330,7 @@ func createJWSWithHMAC(secret string, files []File, isCompact bool) string {
 	// Generate Signature JSON
 	signBytes, err := json.Marshal(Signature{
 		Signature: jwsJson,
-		Files:     files,
+		// Files:     files,
 	})
 	if err != nil {
 		log.Fatal(err)

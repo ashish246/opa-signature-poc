@@ -1,4 +1,5 @@
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.List;
 
@@ -8,6 +9,7 @@ public class SignaturePOJO {
     private String signature;
 
     @JsonProperty("files")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<FilesPOJO> files;
 
     public String getSignature() {

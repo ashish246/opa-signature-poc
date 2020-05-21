@@ -141,9 +141,9 @@ public class OpaSignature {
         SignaturePOJO signatures = new SignaturePOJO();
         signatures.setSignature(jsonString);
         ObjectMapper mapper = new ObjectMapper();
-        CollectionType javaType = mapper.getTypeFactory()
-                .constructCollectionType(List.class, FilesPOJO.class);
-        signatures.setFiles(mapper.readValue(filesJson, javaType));
+        // CollectionType javaType = mapper.getTypeFactory()
+        //         .constructCollectionType(List.class, FilesPOJO.class);
+        // signatures.setFiles(mapper.readValue(filesJson, javaType));
 
         String signatureString = mapper.writeValueAsString(signatures);
 
@@ -244,9 +244,9 @@ public class OpaSignature {
         SignaturePOJO signatures = new SignaturePOJO();
         signatures.setSignature(jsonString);
         ObjectMapper mapper = new ObjectMapper();
-        CollectionType javaType = mapper.getTypeFactory()
-                .constructCollectionType(List.class, FilesPOJO.class);
-        signatures.setFiles(mapper.readValue(filesJson, javaType));
+        // CollectionType javaType = mapper.getTypeFactory()
+        //         .constructCollectionType(List.class, FilesPOJO.class);
+        // signatures.setFiles(mapper.readValue(filesJson, javaType));
 
         String signatureString = mapper.writeValueAsString(signatures);
 
