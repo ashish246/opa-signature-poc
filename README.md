@@ -19,6 +19,15 @@ Each command should produce `Exit Codes` as follows:
 - `1` - Error occurred
 - `2` - Usage message (only for Go)
 
+Check the command usage for both, Go and Java, using below commands:
+```bash
+<./go-opasign | ./java-opasign.sh> --help
+```
+
+```bash
+<./go-opasign | ./java-opasign.sh> <create | list | verify> --help
+```
+
 ### Follow below steps to run Go code
 - Switch to the `go` directory for Go project
 - Build the Go Project. This will produce an executable binary in the parent/root directory
