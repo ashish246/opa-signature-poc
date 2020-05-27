@@ -1,9 +1,8 @@
 **/.DS_Store
 .DS_Store
 .idea
-.gradle
-/gradle
-/build
-/bin
 .settings
 .vscode
+/java/.gradle
+/java/gradle
+/java/build
