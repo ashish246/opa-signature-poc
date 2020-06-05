@@ -1,0 +1,2 @@
+- Add some test cases for each Go and Java implementations
+- Look into how we can define mutually exclusive and dependent arguments/options

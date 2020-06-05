@@ -7,7 +7,7 @@ public class FilesPOJO {
     @JsonProperty("name")
     private String name;
 
-    @JsonProperty("sha-256")
+    @JsonProperty("hash")
     private String sha256;
 
 

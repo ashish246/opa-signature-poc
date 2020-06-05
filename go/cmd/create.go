@@ -23,8 +23,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"gopkg.in/square/go-jose.v2"
-	"gopkg.in/square/go-jose.v2/jwt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -32,12 +30,15 @@ import (
 	"strings"
 	"time"
 
+	"gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2/jwt"
+
 	"github.com/spf13/cobra"
 )
 
 type File struct {
 	Name   string `json:"name"`
-	Sha256 string `json:"sha-256"`
+	Sha256 string `json:"hash"`
 }
 type Signature struct {
 	Signature string `json:"signature"`

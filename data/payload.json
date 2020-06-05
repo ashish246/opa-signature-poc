@@ -1,10 +1,10 @@
 [
   {
-    "name": "data/uam2/entitlements/data.json",
-    "sha-256": "c2131544c716a25a5e31f504300f5240e8235cadb9a57f0bd1b6f4bd74b26612"
+    "name": "c2131544c716a25a5e31f504300f5240e8235cadb9a57f0bd1b6f4bd74b26612",
+    "hash": "data/uam2/entitlements/data.json"
   },
   {
-    "name": "data/uam2/policy/opa-policy.rego",
-    "sha-256": "42cfe6768b57bb5f7503c165c28dd07ac5b813554ebc850f2cc35843e7137b1d"
+    "name": "42cfe6768b57bb5f7503c165c28dd07ac5b813554ebc850f2cc35843e7137b1d",
+    "hash": "data/uam2/policy/opa-policy.rego"
   }
 ]
