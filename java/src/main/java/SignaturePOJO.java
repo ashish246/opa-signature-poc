@@ -1,30 +1,17 @@
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class SignaturePOJO {
 
-    @JsonProperty("signature")
-    private String signature;
+    @JsonProperty("signatures")
+    private List<String> signatures;
 
-    @JsonProperty("files")
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<FilesPOJO> files;
-
-    public String getSignature() {
-        return signature;
+    public List<String> getSignatures() {
+        return signatures;
     }
 
-    public List<FilesPOJO> getFiles() {
-        return files;
-    }
-
-    public void setSignature(String signature) {
-        this.signature = signature;
-    }
-
-    public void setFiles(List<FilesPOJO> files) {
-        this.files = files;
+    public void setSignatures(List<String> signatures) {
+        this.signatures = signatures;
     }
 }

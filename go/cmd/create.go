@@ -37,12 +37,12 @@ import (
 )
 
 type File struct {
-	Name   string `json:"name"`
-	Sha256 string `json:"hash"`
+	Name      string `json:"name"`
+	Hash      string `json:"hash"`
+	Algorithm string `json:"algorithm"`
 }
-type Signature struct {
-	Signature string `json:"signature"`
-	//Files     []File `json:"files"`
+type Signatures struct {
+	Signatures []string `json:"signatures"`
 }
 
 // createCmd represents the create command
@@ -196,8 +196,8 @@ func CreateJWSWithRSA(privateKey *rsa.PrivateKey, filesBuf []byte, isCompact boo
 		jwsJson, _ = clBytes.CompactSerialize()
 		// fmt.Printf("[RSA] JWT token generated: \n%s\n", jwsJson)
 		// Generate Signature JSON
-		signBytes, err := json.Marshal(Signature{
-			Signature: jwsJson,
+		signBytes, err := json.Marshal(Signatures{
+			Signatures: []string{jwsJson},
 		})
 		if err != nil {
 			Err(err)
@@ -247,8 +247,8 @@ func CreateJWSWithHMAC(secret string, filesBuf []byte, isCompact bool, fileName 
 		// fmt.Printf("[HMAC] JWT token generated: \n%s\n", jwsJson)
 		//Write to file signature-compact.json
 		// Generate Signature JSON
-		signBytes, err := json.Marshal(Signature{
-			Signature: jwsJson,
+		signBytes, err := json.Marshal(Signatures{
+			Signatures: []string{jwsJson},
 			//Files:     files,
 		})
 		err = ioutil.WriteFile(fileName, signBytes, 0600)
@@ -332,8 +332,9 @@ func getPayloadFromDir(targetDir string) []File {
 					Err(err)
 				}
 				file := File{
-					Name:   path,
-					Sha256: hex.EncodeToString(hasher.Sum(nil)),
+					Name:      path,
+					Hash:      hex.EncodeToString(hasher.Sum(nil)),
+					Algorithm: "sha-256",
 				}
 				files = append(files, file)
 				//fmt.Println("File In ->", file)

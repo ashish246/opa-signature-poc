@@ -1,6 +1,4 @@
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 
 public class FilesPOJO {
 
@@ -8,15 +6,18 @@ public class FilesPOJO {
     private String name;
 
     @JsonProperty("hash")
-    private String sha256;
+    private String hash;
+
+    @JsonProperty("algorithm")
+    private String algorithm;
 
 
-    public String getSha256() {
-        return sha256;
+    public String getHash() {
+        return hash;
     }
 
-    public void setSha256(String sha256) {
-        this.sha256 = sha256;
+    public void setHash(String hash) {
+        this.hash = hash;
     }
 
     public String getName() {
@@ -25,5 +26,13 @@ public class FilesPOJO {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getAlgorithm() {
+        return algorithm;
+    }
+
+    public void setAlgorithm(String algorithm) {
+        this.algorithm = algorithm;
     }
 }

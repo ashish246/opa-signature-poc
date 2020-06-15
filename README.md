@@ -3,8 +3,8 @@ POC of the new OPA .signature file for OPA bundles.
 
 This repository contains:
 1. Sample policy and data files under the directory `/db`. `/db/uam2` is the one used in the sample codes for testing
-2. `/java` directory contains the Java implementation pf signing bundles using [NIMBUS JOSE + JWT](https://bitbucket.org/connect2id/nimbus-jose-jwt/wiki/Home) library. Currently this library support only compact serialisation of JWS objects. It is also using [PICOCLI](https://picocli.info/) library for CLI implementation
-3. `/go` directory contains the GO implementation of signing bundles using [GO-JOSE](https://github.com/square/go-jose) library. This library supports both compact and non-compact serialisation of JWS objects. It is also using [Cobra](https://github.com/spf13/cobra) library for CLI implementation
+2. `/java` directory contains the Java implementation pf signing bundles using [NIMBUS JOSE + JWT](https://bitbucket.org/connect2id/nimbus-jose-jwt/wiki/Home) library. This library supports both compact and non-compact serialisation of JWS objects. It is also using [PICOCLI](https://picocli.info/) library for CLI implementation
+3. `/go` directory contains the GO implementation of signing bundles using [GO-JOSE](https://github.com/square/go-jose) library. Currently this library support only compact serialisation of JWS objects. It is also using [Cobra](https://github.com/spf13/cobra) library for CLI implementation
 4. `/data` directory contains the a subdirectory `/uam2` which contains the files to be signed and a JSON file `payload.json` which contains the list of files under `uam2` directory and their SHA hash. Command can use either target directory `uam2` or the payload JSON file directory to pass in the input to be signed
 5. `rsa` directory contains a test primary key (`primaryKey.pem`) and a public key (`publicKey.pub`) to be used to generate a signature and/or verify the signature
 6. Running either `GO` or `Java` utility produces 2 signature files under the root (`.`) directory:

@@ -23,12 +23,13 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"gopkg.in/square/go-jose.v2/jwt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"gopkg.in/square/go-jose.v2/jwt"
 
 	"github.com/spf13/cobra"
 )
@@ -108,14 +109,14 @@ func VerifyJWSWithRSA(publicKey *rsa.PublicKey, filePath string, targetDir strin
 	}
 
 	// Unmarshal bytes to the Signature object
-	var signatures Signature
+	var signatures Signatures
 	err = json.Unmarshal(bytes, &signatures)
 	if err != nil {
 		Err(err)
 	}
 	//fmt.Printf("[RSA] JWT token found in the file "+filePath+": \n%s\n", signatures.Signature)
 
-	jwsObject, err := jwt.ParseSigned(signatures.Signature)
+	jwsObject, err := jwt.ParseSigned(signatures.Signatures[0])
 	if err != nil {
 		Err(err)
 	}
@@ -154,14 +155,14 @@ func VerifyJWSWithHMAC(secret string, filePath string, targetDir string) {
 		Err("[HMAC] No content found in the file: " + filePath)
 	}
 	// Unmarshal bytes to the Signature object
-	var signatures Signature
+	var signatures Signatures
 	err = json.Unmarshal(bytes, &signatures)
 	if err != nil {
 		Err(err)
 	}
 	//fmt.Printf("[HMAC] JWT token found in the file "+filePath+": \n%s\n", signatures.Signature)
 
-	jwsObject, err := jwt.ParseSigned(signatures.Signature)
+	jwsObject, err := jwt.ParseSigned(signatures.Signatures[0])
 	if err != nil {
 		Err(err)
 	}
@@ -211,8 +212,9 @@ func verifyPayloadFiles(payloadJSON string, targetDir string) bool {
 					Err(err)
 				}
 				file := File{
-					Name:   path,
-					Sha256: hex.EncodeToString(hasher.Sum(nil)),
+					Name:      path,
+					Hash:      hex.EncodeToString(hasher.Sum(nil)),
+					Algorithm: "sha-256",
 				}
 				targetFiles = append(targetFiles, file)
 				//fmt.Println("File In ->", file)
@@ -253,8 +255,8 @@ func verifyPayloadFiles(payloadJSON string, targetDir string) bool {
 					Err(err)
 				}
 				fd.Close()
-				if sf.Sha256 != hex.EncodeToString(hasher.Sum(nil)) {
-					Err("File " + sf.Name + " has different sha256\nExpected=" + sf.Sha256 + "\nGot=" + hex.EncodeToString(hasher.Sum(nil)))
+				if sf.Hash != hex.EncodeToString(hasher.Sum(nil)) {
+					Err("File " + sf.Name + " has different sha256\nExpected=" + sf.Hash + "\nGot=" + hex.EncodeToString(hasher.Sum(nil)))
 				}
 			}
 		}

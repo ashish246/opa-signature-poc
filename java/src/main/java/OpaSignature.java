@@ -170,7 +170,7 @@ public class OpaSignature implements Runnable {
             ObjectMapper mapper = new ObjectMapper();
             SignaturePOJO signatures = mapper.readValue(fileBytes, SignaturePOJO.class);
             // On the consumer side, parse the JWS and verify its RSA signature
-            SignedJWT signedJWT = SignedJWT.parse(signatures.getSignature());
+            SignedJWT signedJWT = SignedJWT.parse(signatures.getSignatures().get(0));
             String payload = (String) signedJWT.getJWTClaimsSet().getClaim("files");
             System.out.println("JWT claims decoded: \n" + payload);
         } catch (Exception e) {

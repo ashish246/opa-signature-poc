@@ -1,27 +1,22 @@
-import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
+import java.util.Arrays;
+import java.util.Date;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
-import com.nimbusds.jose.*;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class HMACHandler {
 
@@ -51,7 +46,7 @@ public class HMACHandler {
 //        System.out.println("[HMAC] JWT token generated: \n" + jsonString);
         // Set the signature object
         SignaturePOJO signatures = new SignaturePOJO();
-        signatures.setSignature(jsonString);
+        signatures.setSignatures(Arrays.asList(jsonString));
         ObjectMapper mapper = new ObjectMapper();
 
         String signatureString = mapper.writeValueAsString(signatures);
@@ -73,7 +68,7 @@ public class HMACHandler {
 //        System.out.println("[HMAC] JWT token found in the file " + fileName + ": \n" + signatures.getSignature());
 
         // On the consumer side, parse the JWS and verify its RSA signature
-        SignedJWT signedJWT = SignedJWT.parse(signatures.getSignature());
+        SignedJWT signedJWT = SignedJWT.parse(signatures.getSignatures().get(0));
 
         JWSVerifier verifier = new MACVerifier(sharedSecret);
         Boolean isValid = signedJWT.verify(verifier);

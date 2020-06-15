@@ -136,8 +136,8 @@ public class SigningHelper {
 
                     byte[] hash = digest.digest();
 
-                    if (!sf.getSha256().equals(SigningHelper.encodeHexString(hash))) {
-                        System.out.println("File " + sf.getName() + " has different SHA256. \nExpected=" + sf.getSha256() + "\nGot=" + SigningHelper.encodeHexString(hash));
+                    if (!sf.getHash().equals(SigningHelper.encodeHexString(hash))) {
+                        System.out.println("File " + sf.getName() + " has different SHA256. \nExpected=" + sf.getHash() + "\nGot=" + SigningHelper.encodeHexString(hash));
                         throw new Exception("SHA hash of the file " + sf.getName() + " could not be verified");
                     }
                 }
@@ -174,7 +174,8 @@ public class SigningHelper {
                 byte[] hash = digest.digest();
 
 //                    file.setSha256(Base64.getEncoder().encodeToString(hash));
-                file.setSha256(encodeHexString(hash));
+                file.setHash(encodeHexString(hash));
+                file.setAlgorithm("sha-256");
                 files.add(file);
             }
         }

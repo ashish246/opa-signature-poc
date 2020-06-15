@@ -52,13 +52,13 @@ var listCmd = &cobra.Command{
 		}
 
 		// Unmarshal bytes to the Signature object
-		var signatures Signature
+		var signatures Signatures
 		err = json.Unmarshal(filesBuf, &signatures)
 		if err != nil {
 			Err(err)
 		}
 
-		jwsObject, err := jwt.ParseSigned(signatures.Signature)
+		jwsObject, err := jwt.ParseSigned(signatures.Signatures[0])
 		if err != nil {
 			Err(err)
 		}
