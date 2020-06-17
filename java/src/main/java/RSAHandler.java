@@ -18,10 +18,19 @@ import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.fasterxml.jackson.databind.type.CollectionType;
+import java.util.List;
 
 public class RSAHandler {
 
     public static void createJWSWithRSA(RSAKey rsaJWK, String filesJson, String sigFileName) throws JOSEException, IOException {
+        ObjectMapper mapper = new ObjectMapper();
+
+        // Unmarshal files JSON into Files array
+        CollectionType javaType = mapper.getTypeFactory()
+                .constructCollectionType(List.class, FilesPOJO.class);
+        List<FilesPOJO> files = mapper.readValue(filesJson, javaType);
+
         // Create RSA-signer with the private key
         JWSSigner signer = new RSASSASigner(rsaJWK);
 
@@ -31,7 +40,8 @@ public class RSAHandler {
                 .issuer("JWTService")
                 .issueTime(new Date())
 //                .expirationTime(new Date(new Date().getTime() + 60 * 1000))
-                .claim("files", filesJson)
+                // .claim("files", filesJson)
+                .claim("files", files)
                 .claim("scope", "AU.GLOBAL.OPA.WRITE")
                 .claim("jwks-url", "https://github.com/csp/opa-sourcedata-bundles")
                 .build();
@@ -50,7 +60,6 @@ public class RSAHandler {
         // Set the signature object for signature and file list
         SignaturePOJO signatures = new SignaturePOJO();
         signatures.setSignatures(Arrays.asList(jsonString));
-        ObjectMapper mapper = new ObjectMapper();
 
         String signatureString = mapper.writeValueAsString(signatures);
 
@@ -78,10 +87,13 @@ public class RSAHandler {
         Boolean isValid = signedJWT.verify(verifier);
         System.out.println("[RSA] Signature valid flag: " + isValid.toString().toUpperCase());
 
-        String payload = (String) signedJWT.getJWTClaimsSet().getClaim("files");
-        System.out.println("[RSA] Payload Decoded: \n" + payload);
+        // String payload = (String) signedJWT.getJWTClaimsSet().getClaim("files");
+        Object payload = signedJWT.getJWTClaimsSet().getClaim("files");
+        // Java objects to JSON string - compact-print
+        String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(payload);
+        System.out.println("[RSA] Payload Decoded: \n" + jsonString);
 
-        boolean isFilesValid = SigningHelper.verifyPayloadFiles(payload, targetDir);
+        boolean isFilesValid = SigningHelper.verifyPayloadFiles(jsonString, targetDir);
         if (!isFilesValid) {
             throw new Exception("SHA hash of one or more files could not be verified");
         }

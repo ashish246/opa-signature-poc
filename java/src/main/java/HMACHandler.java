@@ -17,10 +17,20 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.fasterxml.jackson.databind.type.CollectionType;
+import java.util.List;
 
 public class HMACHandler {
 
     public static void createJWSWithHMAC(String sharedSecret, String filesJson, String sigFileName) throws JOSEException, IOException {
+
+        ObjectMapper mapper = new ObjectMapper();
+
+         // Unmarshal files JSON into Files array
+         CollectionType javaType = mapper.getTypeFactory()
+         .constructCollectionType(List.class, FilesPOJO.class);
+        List<FilesPOJO> files = mapper.readValue(filesJson, javaType);
+
         // Create HMAC signer
         JWSSigner signer = new MACSigner(sharedSecret);
 
@@ -30,7 +40,8 @@ public class HMACHandler {
                 .issuer("JWTService")
                 .issueTime(new Date())
 //                .expirationTime(new Date(new Date().getTime() + 60 * 1000))
-                .claim("files", filesJson)
+                // .claim("files", filesJson)
+                .claim("files", files)
                 .claim("scope", "AU.GLOBAL.OPA.WRITE")
                 .claim("jwks-url", "https://github.com/csp/opa-sourcedata-bundles")
                 .build();
@@ -47,7 +58,6 @@ public class HMACHandler {
         // Set the signature object
         SignaturePOJO signatures = new SignaturePOJO();
         signatures.setSignatures(Arrays.asList(jsonString));
-        ObjectMapper mapper = new ObjectMapper();
 
         String signatureString = mapper.writeValueAsString(signatures);
 
@@ -74,10 +84,13 @@ public class HMACHandler {
         Boolean isValid = signedJWT.verify(verifier);
         System.out.println("[HMAC] Signature valid flag: " + isValid.toString().toUpperCase());
 
-        String payload = (String) signedJWT.getJWTClaimsSet().getClaim("files");
-        System.out.println("[HMAC] Payload Decoded: \n" + payload);
+         // String payload = (String) signedJWT.getJWTClaimsSet().getClaim("files");
+         Object payload = signedJWT.getJWTClaimsSet().getClaim("files");
+         // Java objects to JSON string - compact-print
+         String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(payload);
+         System.out.println("[RSA] Payload Decoded: \n" + jsonString);
 
-        boolean isFilesValid = SigningHelper.verifyPayloadFiles(payload, targetDir);
+        boolean isFilesValid = SigningHelper.verifyPayloadFiles(jsonString, targetDir);
         if (!isFilesValid) {
             throw new Exception("SHA hash of one or more files could not be verified");
         }

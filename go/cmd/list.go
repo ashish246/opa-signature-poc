@@ -70,13 +70,21 @@ var listCmd = &cobra.Command{
 		}
 
 		fStr := output["files"]
-		// var files []File
-		// err = json.Unmarshal([]byte(fStr.(string)), &files)
-		// if err != nil {
-		// 	Err(err)
-		// }
 
-		fmt.Printf("Payload Decoded:\n%s\n", fStr.(string))
+		// This extra marshalling helps you unmarshal the interface{} type into []File object
+		payloadJSON, err := json.MarshalIndent(fStr, "", " ")
+		if err != nil {
+			Err(err)
+		}
+		// Get the source files
+		var files []File
+		err = json.Unmarshal(payloadJSON, &files)
+		if err != nil {
+			Err(err)
+		}
+		// fmt.Printf("Files Decoded:\n%s\n", files)
+
+		fmt.Printf("Payload Decoded:\n%s\n", payloadJSON)
 		fmt.Println("Exit Code: ", 0)
 		os.Exit(0)
 	},

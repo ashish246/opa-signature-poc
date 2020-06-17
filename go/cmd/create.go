@@ -169,6 +169,12 @@ func CreateJWSWithRSA(privateKey *rsa.PrivateKey, filesBuf []byte, isCompact boo
 		Err(err)
 	}
 
+	var files []File
+	err = json.Unmarshal(filesBuf, &files)
+	if err != nil {
+		Err(err)
+	}
+
 	// Public JWT Claims
 	cl := jwt.Claims{
 		//Subject: "subject",
@@ -182,7 +188,8 @@ func CreateJWSWithRSA(privateKey *rsa.PrivateKey, filesBuf []byte, isCompact boo
 	clBytes := jwt.Signed(signer).
 		Claims(&cl).
 		Claims(map[string]interface{}{
-			"files": string(filesBuf),
+			"files": files,
+			// "files": string(filesBuf),
 		}).
 		Claims(map[string]interface{}{
 			"scope": "AU.GLOBAL.OPA.WRITE",
@@ -229,10 +236,17 @@ func CreateJWSWithHMAC(secret string, filesBuf []byte, isCompact bool, fileName 
 		//Audience: jwt.Audience{"leela", "fry"},
 	}
 
+	var files []File
+	err = json.Unmarshal(filesBuf, &files)
+	if err != nil {
+		Err(err)
+	}
+
 	clBytes := jwt.Signed(signer).
 		Claims(&cl).
 		Claims(map[string]interface{}{
-			"files": string(filesBuf),
+			// "files": string(filesBuf),
+			"files": files,
 		}).
 		Claims(map[string]interface{}{
 			"scope": "AU.GLOBAL.OPA.WRITE",

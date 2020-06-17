@@ -128,10 +128,7 @@ func VerifyJWSWithRSA(publicKey *rsa.PublicKey, filePath string, targetDir strin
 	}
 	fmt.Printf("[RSA] Signature valid flag: TRUE\n")
 
-	fStr := output["files"]
-	fmt.Printf("[RSA] Payload Decoded:\n%s\n", fStr.(string))
-
-	isPayloadValid := verifyPayloadFiles(fStr.(string), targetDir)
+	isPayloadValid := verifyPayloadFiles(output["files"], targetDir)
 	if !isPayloadValid {
 		Err("SHA hash of one or more files could not be verified")
 	}
@@ -174,10 +171,7 @@ func VerifyJWSWithHMAC(secret string, filePath string, targetDir string) {
 	}
 	fmt.Printf("[HMAC] Signature valid flag: TRUE\n")
 
-	fStr := output["files"]
-	fmt.Printf("[HMAC] Payload Decoded:\n%s\n", fStr.(string))
-
-	isPayloadValid := verifyPayloadFiles(fStr.(string), targetDir)
+	isPayloadValid := verifyPayloadFiles(output["files"], targetDir)
 	if !isPayloadValid {
 		Err("SHA hash of one or more files could not be verified")
 	}
@@ -185,10 +179,17 @@ func VerifyJWSWithHMAC(secret string, filePath string, targetDir string) {
 }
 
 // verifyPayloadFiles
-func verifyPayloadFiles(payloadJSON string, targetDir string) bool {
+func verifyPayloadFiles(payload interface{}, targetDir string) bool {
+
+	// This extra marshalling helps you unmarshal the interface{} type into []File object
+	payloadJSON, err := json.MarshalIndent(payload, "", " ")
+	if err != nil {
+		Err(err)
+	}
+	fmt.Printf("Payload Decoded:\n%s\n", payloadJSON)
 	// Get the source files
 	var sourceFiles []File
-	err := json.Unmarshal([]byte(payloadJSON), &sourceFiles)
+	err = json.Unmarshal(payloadJSON, &sourceFiles)
 	if err != nil {
 		Err(err)
 	}

@@ -10,7 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Security;
 import java.text.ParseException;
-
+import java.util.List;
 import java.lang.*;
 
 import picocli.CommandLine;
@@ -171,8 +171,10 @@ public class OpaSignature implements Runnable {
             SignaturePOJO signatures = mapper.readValue(fileBytes, SignaturePOJO.class);
             // On the consumer side, parse the JWS and verify its RSA signature
             SignedJWT signedJWT = SignedJWT.parse(signatures.getSignatures().get(0));
-            String payload = (String) signedJWT.getJWTClaimsSet().getClaim("files");
-            System.out.println("JWT claims decoded: \n" + payload);
+            Object payload = signedJWT.getJWTClaimsSet().getClaim("files");
+            // Java objects to JSON string - compact-print
+            String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(payload);
+            System.out.println("JWT claims decoded: \n" + jsonString);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return 1;
