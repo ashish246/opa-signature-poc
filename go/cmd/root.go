@@ -16,9 +16,18 @@ limitations under the License.
 package cmd
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
-	"github.com/spf13/cobra"
+	"io"
+	"io/ioutil"
 	"os"
+	"sort"
+	"strings"
+
+	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
@@ -91,4 +100,79 @@ func Err(msg interface{}) {
 	fmt.Println("Error occurred: ", msg)
 	fmt.Println("Exit Code: ", 1)
 	os.Exit(1)
+}
+
+func hashJSON(path string) (string, error) {
+	fileByte, err := ioutil.ReadFile(path)
+	if err != nil {
+		Err(err)
+	}
+
+	data := make(map[string]interface{})
+	err = json.Unmarshal(fileByte, &data)
+	if err != nil {
+		Err(err)
+	}
+
+	// var b bytes.Buffer
+	// walk(data, &b)
+	// s2 := b.Bytes()
+	// fmt.Printf("json marshal: %s\n", string(fileByte))
+	// fmt.Printf("synt marshal: %s\n", string(s2))
+
+	h := sha256.New()
+	h.Write(fileByte)
+	d1 := h.Sum(nil)
+	fmt.Printf("json digest is: %s\n", hex.EncodeToString(d1))
+
+	d2 := digest(data)
+	finalHash := hex.EncodeToString(d2)
+	fmt.Printf("synt digest is: %s\n", finalHash)
+
+	return finalHash, nil
+}
+
+func digest(v interface{}) []byte {
+	h := sha256.New()
+	walk(v, h)
+	return h.Sum(nil)
+}
+
+func walk(v interface{}, h io.Writer) {
+	switch x := v.(type) {
+	case map[string]interface{}:
+		h.Write([]byte("{"))
+		var keys []string
+		for k := range x {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for i, key := range keys {
+			if i > 0 {
+				h.Write([]byte(","))
+			}
+			h.Write(encodePrimitive(key))
+			h.Write([]byte(":"))
+			walk(x[key], h)
+		}
+		h.Write([]byte("}"))
+	case []interface{}:
+		h.Write([]byte("["))
+		for i, e := range x {
+			if i > 0 {
+				h.Write([]byte(","))
+			}
+			walk(e, h)
+		}
+		h.Write([]byte("]"))
+	default:
+		h.Write(encodePrimitive(x))
+	}
+}
+func encodePrimitive(v interface{}) []byte {
+	var buf bytes.Buffer
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	encoder.Encode(v)
+	return []byte(strings.Trim(string(buf.Bytes()), "\n"))
 }

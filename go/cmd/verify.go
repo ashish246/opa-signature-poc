@@ -201,8 +201,21 @@ func verifyPayloadFiles(payload interface{}, targetDir string) bool {
 			if err != nil {
 				Err(err)
 			}
-			// skip existing signature files
-			if !info.IsDir() && !strings.HasSuffix(info.Name(), ".DS_Store") {
+			// Hash JSON files
+			if !info.IsDir() && !strings.HasSuffix(info.Name(), ".DS_Store") && strings.HasSuffix(strings.ToLower(info.Name()), ".json") {
+				hash, err := hashJSON(path)
+				if err != nil {
+					Err(err)
+				}
+				file := File{
+					Name:      path,
+					Hash:      hash,
+					Algorithm: "sha-256",
+				}
+				targetFiles = append(targetFiles, file)
+			}
+			// skip existing signature files and JSON files
+			if !info.IsDir() && !strings.HasSuffix(info.Name(), ".DS_Store") && !strings.HasSuffix(strings.ToLower(info.Name()), ".json") {
 				hasher := sha256.New()
 				f, err := os.Open(path)
 				if err != nil {
@@ -246,18 +259,8 @@ func verifyPayloadFiles(payload interface{}, targetDir string) bool {
 		for _, tf := range targetFiles {
 			if tf.Name == sf.Name {
 				exists = true
-				// Verify the SHA hash of the file
-				hasher := sha256.New()
-				fd, err := os.Open(tf.Name)
-				if err != nil {
-					Err(err)
-				}
-				if _, err := io.Copy(hasher, fd); err != nil {
-					Err(err)
-				}
-				fd.Close()
-				if sf.Hash != hex.EncodeToString(hasher.Sum(nil)) {
-					Err("File " + sf.Name + " has different sha256\nExpected=" + sf.Hash + "\nGot=" + hex.EncodeToString(hasher.Sum(nil)))
+				if sf.Hash != tf.Hash {
+					Err("File " + sf.Name + " has different sha256\nExpected=" + sf.Hash + "\nGot=" + tf.Hash)
 				}
 			}
 		}

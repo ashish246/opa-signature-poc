@@ -334,8 +334,21 @@ func getPayloadFromDir(targetDir string) []File {
 			if err != nil {
 				Err(err)
 			}
-			// skip existing signature files
-			if !info.IsDir() && !strings.HasSuffix(info.Name(), ".DS_Store") {
+			// Hash JSON files
+			if !info.IsDir() && !strings.HasSuffix(info.Name(), ".DS_Store") && strings.HasSuffix(strings.ToLower(info.Name()), ".json") {
+				hash, err := hashJSON(path)
+				if err != nil {
+					Err(err)
+				}
+				file := File{
+					Name:      path,
+					Hash:      hash,
+					Algorithm: "sha-256",
+				}
+				files = append(files, file)
+			}
+			// Skip existing signature files and JSON files
+			if !info.IsDir() && !strings.HasSuffix(info.Name(), ".DS_Store") && !strings.HasSuffix(strings.ToLower(info.Name()), ".json") {
 				hasher := sha256.New()
 				f, err := os.Open(path)
 				if err != nil {

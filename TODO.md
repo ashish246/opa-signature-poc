@@ -8,3 +8,4 @@ WARNING: Please consider reporting this to the maintainers of net.minidev.asm.Dy
 WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
 WARNING: All illegal access operations will be denied in a future release
 ```
+- Go implementation uses `sha-256-json` algorithm for hashing only JSON files to produce deterministic JSON structure for digital signature and is independent of non-semantic JSON features like order, whitespaces etc. Implement the similar algo for Java implementation
