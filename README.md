@@ -1,6 +1,6 @@
 # opa-sginature-poc
 
-This proof-of-concept was done with [Styra](https://www.styra.com/) team, who are the creator and the maintainer of the open source policy engine [Open Policy Agent](https://www.openpolicyagent.org/), to implement a `Bundle Signing` feature in [OPA](https://github.com/open-policy-agent). The team were kind enough to share the credit with me in the [Changelog](https://github.com/open-policy-agent/opa/blob/master/CHANGELOG.md).
+This proof-of-concept was done with [Styra](https://www.styra.com/) team, who are the creator and the maintainer of the open source policy engine [Open Policy Agent](https://www.openpolicyagent.org/), to implement a `Bundle Signing` feature [1757](https://github.com/open-policy-agent/opa/issues/1757) in [OPA](https://github.com/open-policy-agent). The team were kind enough to share the credit with me in the [Changelog](https://github.com/open-policy-agent/opa/blob/master/CHANGELOG.md).
 
 ***
 Ths PoC is to see how bundles signing (with `.signatures.json` file within bundles) will work in OPA. The implementation was done and tested in `Go` and `Java`.
